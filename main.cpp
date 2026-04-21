@@ -9,48 +9,70 @@ class DataManager {
   int size;
 
  public:
-  DataManager(int s) {
-    size = s;
+  DataManager(int s) : data(nullptr), size(s) {
+    if (size < 0) size = 0;
+
     data = new int[size];
 
     for (int i = 0; i < size; i++) {
-      if (i % 2 == 0) data[i] = i * 2;
+      if (i % 2 == 0)
+        data[i] = i * 2;
+      else
+        data[i] = 0;
     }
   }
 
-  void print() {
-    for (int i = 0; i <= size; i++) {
+  DataManager(const DataManager& other) : data(nullptr), size(other.size) {
+    data = new int[size];
+    for (int i = 0; i < size; i++) {
+      data[i] = other.data[i];
+    }
+  }
+
+  DataManager& operator=(const DataManager& other) {
+    if (this != &other) {
+      int* newData = new int[other.size];
+      for (int i = 0; i < other.size; i++) {
+        newData[i] = other.data[i];
+      }
+
+      delete[] data;
+      data = newData;
+      size = other.size;
+    }
+    return *this;
+  }
+
+  void print() const {
+    for (int i = 0; i < size; i++) {
       cout << data[i] << " ";
     }
     cout << endl;
   }
 
-  int getValue(int index) {
-    if (index < size) return data[index];
-
-    return data[0];
+  int getValue(int index) const {
+    if (index >= 0 && index < size) return data[index];
+    return 0;
   }
 
-  ~DataManager() { delete data; }
+  ~DataManager() { delete[] data; }
 };
 
 void unsafeFunction() {
   char buffer[10];
-
-  strcpy(buffer, "This is way too long for buffer");
-
+  strcpy(buffer, "safe");
   cout << buffer << endl;
 }
 
-int globalVar = 0;
-
 int compute(int x) {
-  int result;
+  int result = 0;
 
   if (x > 10)
     result = x * 2;
   else if (x < 0)
-    return result;
+    result = 0;
+  else
+    result = x;
 
   return result;
 }
@@ -63,6 +85,9 @@ void memoryLeakDemo() {
   *leak2 = 20;
 
   cout << leak1[0] + *leak2 << endl;
+
+  delete[] leak1;
+  delete leak2;
 }
 
 void vectorIssues() {
@@ -71,10 +96,14 @@ void vectorIssues() {
   v.push_back(1);
   v.push_back(2);
 
-  cout << v[10] << endl;
+  cout << v[1] << endl;
 
   v.clear();
-  cout << v.front() << endl;
+
+  if (!v.empty())
+    cout << v.front() << endl;
+  else
+    cout << "vector is empty" << endl;
 }
 
 int main() {
